@@ -49,7 +49,7 @@ void flood_fill_from_point(image img, int group_color, int x, int y) {
 	point->y = y;
 	TAILQ_INSERT_HEAD(&queue, point, entries);
 
-	pixel orig = img.pixels[x + img.w * y];
+	img.pixels[x + img.w * y].group_color = group_color;
 
 	while (queue.tqh_first != NULL) {
 		point = queue.tqh_first;
@@ -59,26 +59,24 @@ void flood_fill_from_point(image img, int group_color, int x, int y) {
 		y = point->y;
 		free(point);
 
-		pixel *cur = &img.pixels[x + img.w * y];
-
-		if (cur->group_color || cur->edge_flag || !neighbors(orig, *cur)) {
-			if (cur->group_color != group_color)
-				cur->edge_flag = 1;
-			continue;
-		}
-
-		cur->group_color = group_color;
+		pixel cur = img.pixels[x + img.w * y];
 
 		int min_x = MAX(x - 1, 0), max_x = MIN(x + 1, img.max_x);
 		int min_y = MAX(y - 1, 0), max_y = MIN(y + 1, img.max_y);
 		for (int j = min_y; j <= max_y; j++) {
 			for (int i = min_x; i <= max_x; i++) {
 				if (i != x || j != y) {
-					if (img.pixels[i + img.w * j].group_color != group_color) {
+					pixel *next = &img.pixels[i + img.w * j];
+
+					if (next->group_color != group_color && !next->edge_flag && neighbors(cur, *next)) {
+						next->group_color = group_color;
+
 						point = malloc(sizeof(struct _point_entry));
 						point->x = i;
 						point->y = j;
 						TAILQ_INSERT_TAIL(&queue, point, entries);
+					} else if (next->group_color != group_color) {
+						next->edge_flag = 1;
 					}
 				}
 			}
@@ -204,7 +202,7 @@ void test_flood_fill(image img, FILE *fp) {
 		img.pixels[i].color[0] = 0;
 		img.pixels[i].color[1] = 0;
 		img.pixels[i].color[2] = 0;
-		img.pixels[i].intensity = 0;
+		img.pixels[i].intensity = 0xff;
 
 		if (img.pixels[i].edge_flag) {
 			img.pixels[i].color[0] = 0x00;
