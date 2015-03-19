@@ -61,7 +61,7 @@ void flood_fill_from_point(image img, int group_color, int x, int y) {
 
 		pixel *cur = &img.pixels[x + img.w * y];
 
-		if (cur->group_color || !neighbors(orig, *cur)) {
+		if (cur->group_color || cur->edge_flag || !neighbors(orig, *cur)) {
 			if (cur->group_color != group_color)
 				cur->edge_flag = 1;
 			continue;
@@ -93,7 +93,7 @@ int flood_fill(image img) {
 		for (int x=0; x<img.w; x++) {
 			int index = x + img.w * y;
 
-			if (!img.pixels[index].group_color) {
+			if (!img.pixels[index].group_color && !img.pixels[index].edge_flag) {
 				flood_fill_from_point(img, ++color, x, y);
 			}
 		}
@@ -197,11 +197,14 @@ void test_flood_fill(image img, FILE *fp) {
 
 	for (int i=0; i<img.size; i++) {
 		int color = img.pixels[i].group_color;
-//		img.pixels[i] = color_array[color - 1];
-		img.pixels[i].color[0] = (55 * color) % 256;
-		img.pixels[i].color[1] = color / 256 % 256;
-		img.pixels[i].color[2] = color / (256 * 256) % 256;
-		img.pixels[i].intensity = 0xff;
+//		img.pixels[i].color[0] = color_array[color - 1].color[0];
+//		img.pixels[i].color[1] = color_array[color - 1].color[1];
+//		img.pixels[i].color[2] = color_array[color - 1].color[2];
+//		img.pixels[i].intensity = color_array[color - 1].intensity;
+		img.pixels[i].color[0] = 0;
+		img.pixels[i].color[1] = 0;
+		img.pixels[i].color[2] = 0;
+		img.pixels[i].intensity = 0;
 
 		if (img.pixels[i].edge_flag) {
 			img.pixels[i].color[0] = 0x00;
