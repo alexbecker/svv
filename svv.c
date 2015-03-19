@@ -167,6 +167,7 @@ void write_bitmap(image img, FILE *fp) {
 			out[4 * i + 2] = p.color[2];
 			out[4 * i + 3] = p.intensity;
 		}
+		fwrite(out, 1, 4 * img.size, fp);
 	} else if (img.fmt == RGB24) {
 		out = malloc(3 * img.size);
 		for (int i=0; i<img.size; i++) {
@@ -175,9 +176,10 @@ void write_bitmap(image img, FILE *fp) {
 			out[3 * i + 1] = p.color[1];
 			out[3 * i + 2] = p.color[2];
 		}
+		fwrite(out, 1, 3 * img.size, fp);
 	}
 
-	fwrite(out, 1, 4 * img.size, fp);
+	fclose(fp);
 	free(out);
 }
 
@@ -195,14 +197,17 @@ void test_flood_fill(image img, FILE *fp) {
 
 	for (int i=0; i<img.size; i++) {
 		int color = img.pixels[i].group_color;
-//		img.pixels[i].color[0] = color_array[color - 1].color[0];
-//		img.pixels[i].color[1] = color_array[color - 1].color[1];
-//		img.pixels[i].color[2] = color_array[color - 1].color[2];
-//		img.pixels[i].intensity = color_array[color - 1].intensity;
+#ifndef EDGE_TEST
+		img.pixels[i].color[0] = color_array[color - 1].color[0];
+		img.pixels[i].color[1] = color_array[color - 1].color[1];
+		img.pixels[i].color[2] = color_array[color - 1].color[2];
+		img.pixels[i].intensity = color_array[color - 1].intensity;
+#else
 		img.pixels[i].color[0] = 0;
 		img.pixels[i].color[1] = 0;
 		img.pixels[i].color[2] = 0;
 		img.pixels[i].intensity = 0xff;
+#endif
 
 		if (img.pixels[i].edge_flag) {
 			img.pixels[i].color[0] = 0x00;
